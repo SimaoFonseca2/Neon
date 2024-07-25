@@ -38,6 +38,7 @@ public class Board extends JPanel {
         move.piece.row = move.nextRow;
         move.piece.xPos = move.nextCol * tile_size;
         move.piece.yPos = move.nextRow * tile_size;
+        move.piece.isFirstMove = false;
         capture(move);
     }
 
@@ -47,6 +48,12 @@ public class Board extends JPanel {
 
     public boolean isValidMove(Move move){
         if(isSameTeam(move.piece, move.capture)){
+            return false;
+        }
+        if(!move.piece.isValidMovement(move.nextCol, move.nextRow)){
+            return false;
+        }
+        if(move.piece.check_moveCollision(move.nextCol, move.nextRow)){
             return false;
         }
         return true;
@@ -103,7 +110,7 @@ public class Board extends JPanel {
                         int offset = (tile_size - tile_size / 2) / 2;
 
                         if(getPiece(col, row) != null){
-                            g2d.setStroke(new BasicStroke(3)); // Adjust the width as needed
+                            g2d.setStroke(new BasicStroke(3));
                             g2d.drawOval(col * tile_size, row * tile_size, tile_size, tile_size);
                         }else{
                             g2d.fillOval(col * tile_size+offset, row * tile_size+offset, tile_size/2, tile_size/2);
@@ -111,6 +118,13 @@ public class Board extends JPanel {
                     }
                 }
             }
+        }
+
+        if(selectedPiece != null && !input.isDragged){
+            g2d.setColor(new Color(0, 0, 0, 179));
+            g2d.setStroke(new BasicStroke(3));
+            g2d.drawOval(selectedPiece.col * tile_size, selectedPiece.row * tile_size, tile_size, tile_size);
+            g2d.fillOval(selectedPiece.col * tile_size, selectedPiece.row * tile_size, tile_size, tile_size);
         }
         //paint pieces
         for(Piece piece : pieceArrayList){

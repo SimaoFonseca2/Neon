@@ -12,10 +12,10 @@ public class Piece {
 
     public int col, row;
     public int xPos, yPos;
-
     public boolean isBlack;
     public String name;
     public int value;
+    public boolean isFirstMove = true;
     Image sprite;
     Board board;
     BufferedImage sheet;
@@ -29,6 +29,14 @@ public class Piece {
     protected int sheetscale = sheet.getWidth()/6;
     public Piece(Board board){
         this.board = board;
+    }
+
+    public boolean isValidMovement(int col, int row){
+        return true;
+    }
+
+    public boolean check_moveCollision(int col, int row){
+        return false;
     }
 
     public void paint(Graphics2D g2d){

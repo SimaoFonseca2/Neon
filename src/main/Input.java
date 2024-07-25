@@ -7,6 +7,8 @@ import java.awt.event.MouseEvent;
 
 public class Input extends MouseAdapter {
     Board board;
+    Piece previous_piece = null;
+    boolean isDragged = false;
     public Input(Board board){
         this.board = board;
     }
@@ -17,10 +19,32 @@ public class Input extends MouseAdapter {
         Piece piece = board.getPiece(col, row);
         if(piece != null){
             board.selectedPiece = piece;
+            board.repaint();
+        }
+    }
+    @Override
+    public void mouseClicked(MouseEvent e) {
+        int col = e.getX() / board.tile_size;
+        int row = e.getY() / board.tile_size;
+        Piece piece = board.getPiece(col, row);
+        if(piece != null){
+            if(piece == previous_piece){
+                previous_piece = null;
+                board.selectedPiece = null;
+                board.repaint();
+            }else{
+                previous_piece = piece;
+                board.selectedPiece = piece;
+                board.repaint();
+            }
+        }else{
+            previous_piece = null;
+            board.selectedPiece = null;
         }
     }
     @Override
     public void mouseDragged(MouseEvent e) {
+        isDragged = true;
         if(board.selectedPiece != null){
             board.selectedPiece.xPos = e.getX() - board.tile_size / 2;
             board.selectedPiece.yPos = e.getY() - board.tile_size / 2;
@@ -30,6 +54,7 @@ public class Input extends MouseAdapter {
     }
     @Override
     public void mouseReleased(MouseEvent e) {
+        isDragged = false;
         int col = e.getX() / board.tile_size;
         int row = e.getY() / board.tile_size;
         if(board.selectedPiece != null){
