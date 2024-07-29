@@ -30,6 +30,11 @@ public class Pawn extends Piece{
         if(col == this.col + 1 && row == this.row - teamIndex && board.getPiece(col,row) != null){
             return true;
         }
+
+        //en pessant left||right
+        if (board.getTile_num(col, row) == board.enPessantTile && Math.abs(col - this.col) == 1 && row == this.row - teamIndex && board.getPiece(col, row + teamIndex) != null){
+            return true;
+        }
         return false;
     }
 }

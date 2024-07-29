@@ -15,6 +15,8 @@ public class Board extends JPanel {
 
     public Piece selectedPiece;
 
+    public int enPessantTile = -1;
+
     Input input = new Input(this);
 
     public Board() {
@@ -33,17 +35,56 @@ public class Board extends JPanel {
         return null;
     }
 
+    public int getTile_num(int col, int row){
+        return row * rows + col;
+    }
+
     public void makeMove(Move move){
+        if(move.piece.name.equals("Pawn")){
+            movePawn(move);
+        }else{
+            move.piece.col = move.nextCol;
+            move.piece.row = move.nextRow;
+            move.piece.xPos = move.nextCol * tile_size;
+            move.piece.yPos = move.nextRow * tile_size;
+            move.piece.isFirstMove = false;
+            capture(move.capture);
+        }
+    }
+
+    private void movePawn(Move move) {
+        //en pessant
+        int teamIndex = move.piece.isBlack ? -1 : 1;
+        if(getTile_num(move.nextCol, move.nextRow)==enPessantTile){
+            move.capture = getPiece(move.nextCol,move.nextRow+teamIndex);
+        }
+        if(Math.abs((move.piece.row - move.nextRow))==2){
+            enPessantTile = getTile_num(move.nextCol, move.nextRow + teamIndex);
+        }else{
+            enPessantTile = -1;
+        }
+
+        //promotions
+        teamIndex = move.piece.isBlack ? 7 : 0;
+        if(move.nextRow == teamIndex){
+            promotePawn(move);
+        }
+
         move.piece.col = move.nextCol;
         move.piece.row = move.nextRow;
         move.piece.xPos = move.nextCol * tile_size;
         move.piece.yPos = move.nextRow * tile_size;
         move.piece.isFirstMove = false;
-        capture(move);
+        capture(move.capture);
     }
 
-    public void capture(Move move){
-        pieceArrayList.remove(move.capture);
+    private void promotePawn(Move move) {
+        pieceArrayList.add(new Queen(this, move.nextCol, move.nextRow, move.piece.isBlack));
+        capture(move.piece);
+    }
+
+    public void capture(Piece piece){
+        pieceArrayList.remove(piece);
     }
 
     public boolean isValidMove(Move move){
