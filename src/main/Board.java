@@ -168,28 +168,28 @@ public class Board extends JPanel {
     }
 
     public void AddPieces(){
-//        pieceArrayList.add(new Knight(this, 1, 0, true));
-//        pieceArrayList.add(new Knight(this, 6, 0, true));
-//        pieceArrayList.add(new Rook(this, 0, 0, true));
-//        pieceArrayList.add(new Rook(this, 7, 0, true));
-//        pieceArrayList.add(new Queen(this, 3, 0, true));
-//        pieceArrayList.add(new Bishop(this, 2, 0, true));
-//        pieceArrayList.add(new Bishop(this, 5, 0, true));
+        pieceArrayList.add(new Knight(this, 1, 0, true));
+        pieceArrayList.add(new Knight(this, 6, 0, true));
+        pieceArrayList.add(new Rook(this, 0, 0, true));
+        pieceArrayList.add(new Rook(this, 7, 0, true));
+        pieceArrayList.add(new Queen(this, 3, 0, true));
+        pieceArrayList.add(new Bishop(this, 2, 0, true));
+        pieceArrayList.add(new Bishop(this, 5, 0, true));
         pieceArrayList.add(new King(this, 4, 0, true));
-//        for (int col = 0; col < 8; col++) {
-//            pieceArrayList.add(new Pawn(this, col, 1, true));
-//        }
-//        pieceArrayList.add(new Rook(this, 0, 7, false));
-//        pieceArrayList.add(new Rook(this, 7, 7, false));
-//        pieceArrayList.add(new Knight(this, 1, 7, false));
-//        pieceArrayList.add(new Knight(this, 6, 7, false));
-//        pieceArrayList.add(new Bishop(this, 2, 7, false));
-//        pieceArrayList.add(new Bishop(this, 5, 7, false));
+        for (int col = 0; col < 8; col++) {
+           pieceArrayList.add(new Pawn(this, col, 1, true));
+        }
+        pieceArrayList.add(new Rook(this, 0, 7, false));
+       pieceArrayList.add(new Rook(this, 7, 7, false));
+       pieceArrayList.add(new Knight(this, 1, 7, false));
+       pieceArrayList.add(new Knight(this, 6, 7, false));
+       pieceArrayList.add(new Bishop(this, 2, 7, false));
+        pieceArrayList.add(new Bishop(this, 5, 7, false));
         pieceArrayList.add(new Queen(this, 3, 7, false));
         pieceArrayList.add(new King(this, 4, 7, false));
-//        for (int col = 0; col < 8; col++) {
-//            pieceArrayList.add(new Pawn(this, col, 6, false));
-//        }
+       for (int col = 0; col < 8; col++) {
+           pieceArrayList.add(new Pawn(this, col, 6, false));
+       }
     }
 
     public void paintComponent(Graphics g){
