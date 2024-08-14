@@ -8,13 +8,15 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.Objects;
 
-public class Piece {
+public class Piece implements Cloneable{
 
     public int col, row;
     public int xPos, yPos;
     public boolean isBlack;
     public String name;
     public int value;
+
+    public int relativeValue;
     public boolean isFirstMove = true;
     Image sprite;
     Board board;
@@ -31,6 +33,17 @@ public class Piece {
         this.board = board;
     }
 
+    @Override
+    public Piece clone() {
+        try {
+            Piece cloned = (Piece) super.clone();
+            cloned.board = this.board;
+
+            return cloned;
+        } catch (CloneNotSupportedException e) {
+            throw new AssertionError();
+        }
+    }
     public boolean isValidMovement(int col, int row){
         return true;
     }

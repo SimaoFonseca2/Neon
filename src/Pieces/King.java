@@ -15,6 +15,7 @@ public class King extends Piece{
         this.yPos = row * board.tile_size;
         this.isBlack = isBlack;
         this.name = "King";
+        this.value = 200;
         this.sprite = sheet.getSubimage(0, isBlack ? sheetscale : 0, sheetscale, sheetscale).getScaledInstance(board.tile_size,board.tile_size, BufferedImage.SCALE_SMOOTH);
     }
     public boolean isValidMovement(int col, int row){

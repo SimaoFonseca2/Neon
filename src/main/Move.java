@@ -1,6 +1,9 @@
 package main;
 
+import Pieces.Knight;
 import Pieces.Piece;
+
+import java.util.Objects;
 
 public class Move {
 

@@ -13,6 +13,9 @@ public class CheckFinder {
         assert king != null;
         int kingCol = king.col;
         int kingRow = king.row;
+        if(move.piece.isBlack && board.vsBot){
+            board.selectedPiece = move.piece;
+        }
         if(board.selectedPiece != null && board.selectedPiece.name.equals("King")){
             kingCol = move.nextCol;
             kingRow = move.nextRow;

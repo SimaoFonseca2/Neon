@@ -12,6 +12,7 @@ public class Pawn extends Piece{
         this.xPos = col * board.tile_size;
         this.yPos = row * board.tile_size;
         this.isBlack = isBlack;
+        this.value = 1;
         this.name = "Pawn";
         this.sprite = sheet.getSubimage(5 * sheetscale, isBlack ? sheetscale : 0, sheetscale, sheetscale).getScaledInstance(board.tile_size,board.tile_size, BufferedImage.SCALE_SMOOTH);
     }
@@ -21,7 +22,7 @@ public class Pawn extends Piece{
         if(this.col == col && row == this.row - teamIndex && board.getPiece(col,row)==null){
             return true;
         }
-        if(isFirstMove&&this.col == col && row == this.row - teamIndex * 2 && board.getPiece(col,row)==null && board.getPiece(col,row+teamIndex)==null){
+        if(this.row == (isBlack ? 1 : 6) &&this.col == col && row == this.row - teamIndex * 2 && board.getPiece(col,row)==null && board.getPiece(col,row+teamIndex)==null){
             return true;
         }
         if(col == this.col - 1 && row == this.row - teamIndex && board.getPiece(col,row) != null){

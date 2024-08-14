@@ -6,29 +6,128 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Objects;
+import java.util.Stack;
 import java.util.stream.Collectors;
 
-public class Board extends JPanel {
+public class Board extends JPanel{
+
+    private Stack<Move> moveHistoryBlack = new Stack<>();
+    private Stack<Move> moveHistoryWhite = new Stack<>();
+    public String fenString = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
     public int tile_size = 85;
     int cols = 8;
     int rows = 8;
+
+    public int eval_num = 0;
 
     ArrayList<Piece> pieceArrayList = new ArrayList<>();
 
     public Piece selectedPiece;
 
     public int enPessantTile = -1;
-    private boolean blackTurn = false;
-    private boolean isGameOver = false;
+    public boolean blackTurn = false;
+    public boolean isGameOver = false;
+    public boolean vsBot = false;
 
+    public JLabel eval;
+    ChessBot bot = new ChessBot(this);
     Input input = new Input(this);
     public CheckFinder checkFinder = new CheckFinder(this);
 
-    public Board() {
+    public Board(JLabel eval) {
         this.setPreferredSize(new Dimension(cols * tile_size, rows * tile_size));
         this.addMouseListener(input);
         this.addMouseMotionListener(input);
-        AddPieces();
+        this.eval = eval;
+        LoadPiecesFromFen(fenString);
+    }
+    public Board(String fenString) {
+        this.setPreferredSize(new Dimension(cols * tile_size, rows * tile_size));
+        this.addMouseListener(input);
+        this.addMouseMotionListener(input);
+        this.fenString = fenString;
+        LoadPiecesFromFen(fenString);
+    }
+    public Board(boolean vsBot, JLabel eval){
+        this.setPreferredSize(new Dimension(cols * tile_size, rows * tile_size));
+        this.addMouseListener(input);
+        this.addMouseMotionListener(input);
+        LoadPiecesFromFen(fenString);
+        this.vsBot = vsBot;
+        this.eval = eval;
+    }
+
+
+
+
+    private void LoadPiecesFromFen(String defaultfenString) {
+        pieceArrayList.clear();
+        String[] sections = defaultfenString.split(" ");
+        //set up piece positions
+        String position = sections[0];
+        int row = 0;
+        int col = 0;
+        for(int i = 0; i < position.length(); i++){
+            char ch = position.charAt(i);
+            if(ch =='/'){
+                row++;
+                col = 0;
+            }else if(Character.isDigit(ch)){
+                col += Character.getNumericValue(ch);
+            }else{
+                boolean isBlack = Character.isLowerCase(ch);
+                char pieceCh = Character.toUpperCase(ch);
+
+                switch (pieceCh){
+                    case 'R':
+                        pieceArrayList.add(new Rook(this,col,row,isBlack));
+                        break;
+                    case 'N':
+                        pieceArrayList.add(new Knight(this,col,row,isBlack));
+                        break;
+                    case 'B':
+                        pieceArrayList.add(new Bishop(this,col,row,isBlack));
+                        break;
+                    case 'P':
+                        pieceArrayList.add(new Pawn(this,col,row,isBlack));
+                        break;
+                    case 'K':
+                        pieceArrayList.add(new King(this,col,row,isBlack));
+                        break;
+                    case 'Q':
+                        pieceArrayList.add(new Queen(this,col,row,isBlack));
+                        break;
+                }
+                col++;
+            }
+            //team to move
+            blackTurn = sections[1].equals("b");
+
+            //castling
+            Piece b_queen_rook = getPiece(0,0);
+            if(b_queen_rook instanceof Rook){
+                b_queen_rook.isFirstMove = sections[2].contains("q");
+            }
+            Piece b_king_rook = getPiece(7,0);
+            if(b_king_rook instanceof Rook){
+                b_king_rook.isFirstMove = sections[2].contains("k");
+            }
+            Piece w_queen_rook = getPiece(0,7);
+            if(w_queen_rook instanceof Rook){
+                w_queen_rook.isFirstMove = sections[2].contains("Q");
+            }
+            Piece w_king_rook = getPiece(7,7);
+            if(w_king_rook instanceof Rook){
+                w_king_rook.isFirstMove = sections[2].contains("K");
+            }
+
+            //en passant position
+            if(sections[3].equals("-")){
+                enPessantTile = -1;
+            }else{
+                enPessantTile = (7 - (sections[3].charAt(1)- '1')) * 8 + (sections[3].charAt(0) - 'a');
+            }
+        }
     }
 
     public Piece getPiece(int col, int row){
@@ -49,14 +148,21 @@ public class Board extends JPanel {
             Piece rook;
             if(move.piece.col < move.nextCol){
                 rook = getPiece(7, move.piece.row);
-                rook.col = 5;
+                if(rook != null) {
+                    rook.col = 5;
+                    rook.xPos = rook.col * tile_size;
+                }
             }else{
                 rook = getPiece(0, move.piece.row);
-                rook.col = 3;
+                if(rook != null){
+                    rook.col = 3;
+                    rook.xPos = rook.col * tile_size;
+                }
             }
-            rook.xPos = rook.col * tile_size;
+
         }
     }
+
 
     public void makeMove(Move move){
         if(move.piece.name.equals("Pawn")){
@@ -72,10 +178,77 @@ public class Board extends JPanel {
         capture(move.capture);
         blackTurn = !blackTurn;
         updateGameState();
+        //moveHistory.push(move);
+        if (vsBot && blackTurn) {
+          //  bot.makeBotMove();
+            bot.makeMove();
+        }
+    }
+    public void makeTestMove(Move move){
+        if(move.piece.name.equals("Pawn")){
+            movePawn(move);
+        }else if(move.piece.name.equals("King")){
+            moveKing(move);
+        }
+        move.piece.col = move.nextCol;
+        move.piece.row = move.nextRow;
+        move.piece.xPos = move.nextCol * tile_size;
+        move.piece.yPos = move.nextRow * tile_size;
+        //move.piece.isFirstMove = false;
+        Testcapture(move.capture);
+        blackTurn = !blackTurn;
+        //updateGameState();
+        if(move.capture != null){
+            System.out.println(move.capture.name);
+        }
+    }
+
+    public void undoMove(Move move) {
+
+        makeTestMove(new Move(this,move.piece, move.prevCol, move.prevRow));
+        if(Math.abs(move.piece.col - move.nextCol) == 2 && move.piece.name.equals("King")){
+            Piece king_rook;
+            Piece queen_rook;
+            if(Math.abs(move.piece.col - move.nextCol) == 2) {
+                king_rook = getPiece(5, move.piece.row);
+                if (king_rook != null && king_rook.name.equals("Rook")) {
+                    king_rook.col = 7;
+                    king_rook.xPos = king_rook.col * tile_size;
+                }
+                queen_rook = getPiece(3, move.piece.row);
+                if (queen_rook != null && queen_rook.name.equals("Rook")) {
+                    queen_rook.col = 0;
+                    queen_rook.xPos = queen_rook.col * tile_size;
+                }
+            }else{
+                king_rook = getPiece(5, move.piece.row);
+                if (king_rook != null && king_rook.name.equals("Rook")) {
+                    king_rook.col = 7;
+                    king_rook.xPos = king_rook.col * tile_size;
+                }
+                queen_rook = getPiece(3, move.piece.row);
+                if (queen_rook != null && queen_rook.name.equals("Rook")) {
+                    queen_rook.col = 0;
+                    queen_rook.xPos = queen_rook.col * tile_size;
+                }
+            }
+        }
+//        if (!moveHistoryBlack.isEmpty() && isBlack) {
+//            Move lastMove = moveHistoryBlack.pop();
+//            makeTestMove(new Move(this, lastMove.piece, lastMove.prevCol, lastMove.prevRow));
+//        }
+//        if (!moveHistoryWhite.isEmpty() && !isBlack) {
+//            Move lastMove = moveHistoryWhite.pop();
+//            makeTestMove(new Move(this, lastMove.piece, lastMove.prevCol, lastMove.prevRow));
+//        }
     }
 
     private String updateGameState() {
         Piece king = findKing(blackTurn);
+        if (king == null) {
+            System.out.println("Error: King is null during game state update.");
+            return "Error!";
+        }
         if(checkFinder.isCheckmate(king)){
             isGameOver = true;
             if(checkFinder.isKingChecked(new Move(this, king, king.col, king.row))){
@@ -89,6 +262,8 @@ public class Board extends JPanel {
         }
         return null;
     }
+
+
 
     private void movePawn(Move move) {
         //en pessant
@@ -135,7 +310,20 @@ public class Board extends JPanel {
     }
 
     public void capture(Piece piece){
-        pieceArrayList.remove(piece);
+        if(piece!=null){
+            pieceArrayList.remove(piece);
+            if(piece.isBlack){
+                eval_num += piece.value;
+            }else{
+                eval_num -= piece.value;
+            }
+            eval.setText("Score: "+ eval_num);
+        }
+    }
+    public void Testcapture(Piece piece){
+        if(piece!=null){
+            pieceArrayList.remove(piece);
+        }
     }
 
     public boolean isValidMove(Move move){
@@ -165,31 +353,6 @@ public class Board extends JPanel {
             return false;
         }
         return p1.isBlack == p2.isBlack;
-    }
-
-    public void AddPieces(){
-        pieceArrayList.add(new Knight(this, 1, 0, true));
-        pieceArrayList.add(new Knight(this, 6, 0, true));
-        pieceArrayList.add(new Rook(this, 0, 0, true));
-        pieceArrayList.add(new Rook(this, 7, 0, true));
-        pieceArrayList.add(new Queen(this, 3, 0, true));
-        pieceArrayList.add(new Bishop(this, 2, 0, true));
-        pieceArrayList.add(new Bishop(this, 5, 0, true));
-        pieceArrayList.add(new King(this, 4, 0, true));
-        for (int col = 0; col < 8; col++) {
-           pieceArrayList.add(new Pawn(this, col, 1, true));
-        }
-        pieceArrayList.add(new Rook(this, 0, 7, false));
-       pieceArrayList.add(new Rook(this, 7, 7, false));
-       pieceArrayList.add(new Knight(this, 1, 7, false));
-       pieceArrayList.add(new Knight(this, 6, 7, false));
-       pieceArrayList.add(new Bishop(this, 2, 7, false));
-        pieceArrayList.add(new Bishop(this, 5, 7, false));
-        pieceArrayList.add(new Queen(this, 3, 7, false));
-        pieceArrayList.add(new King(this, 4, 7, false));
-       for (int col = 0; col < 8; col++) {
-           pieceArrayList.add(new Pawn(this, col, 6, false));
-       }
     }
 
     public void paintComponent(Graphics g){
@@ -239,10 +402,10 @@ public class Board extends JPanel {
             int x = (this.getWidth() - metrics.stringWidth(Objects.requireNonNull(updateGameState()))) / 2;
             int y = ((this.getHeight() - metrics.getHeight()) / 2) + metrics.getAscent();
 
-            int rectWidth = 300; // Rectangle width
-            int rectHeight = 100; // Rectangle height
-            int rectX = (this.getWidth() - rectWidth) / 2; // Calculate top-left x coordinate
-            int rectY = (this.getHeight() - rectHeight) / 2; // Calculate top-left y coordinate
+            int rectWidth = 300;
+            int rectHeight = 100;
+            int rectX = (this.getWidth() - rectWidth) / 2;
+            int rectY = (this.getHeight() - rectHeight) / 2;
 
             g2d.setColor(new Color(87, 54, 43));
             g2d.drawRect(rectX, rectY, rectWidth, rectHeight);
