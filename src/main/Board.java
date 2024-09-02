@@ -14,10 +14,6 @@ public class Board extends JPanel{
     private Stack<Move> moveHistoryBlack = new Stack<>();
     private Stack<Move> moveHistoryWhite = new Stack<>();
     public String fenString = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-    //8/P7/8/8/8/4K3/8/4k3 w - - 0 1
-    //FEN to test pawn promote and promote undo
-    //rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
-    //default positions
     public int tile_size = 85;
     int cols = 8;
     int rows = 8;
@@ -31,7 +27,7 @@ public class Board extends JPanel{
     public int enPessantTile = -1;
     public boolean blackTurn = false;
     public boolean isGameOver = false;
-    public boolean vsBot = false    ;
+    public boolean vsBot = false;
 
     public JLabel eval;
     ChessBot bot = new ChessBot(this);
@@ -45,8 +41,7 @@ public class Board extends JPanel{
         this.eval = eval;
         LoadPiecesFromFen(fenString);
     }
-    public Board(String fenString, JLabel eval) {
-        this.eval = eval;
+    public Board(String fenString) {
         this.setPreferredSize(new Dimension(cols * tile_size, rows * tile_size));
         this.addMouseListener(input);
         this.addMouseMotionListener(input);
@@ -191,7 +186,7 @@ public class Board extends JPanel{
     }
     public void makeTestMove(Move move){
         if(move.piece.name.equals("Pawn")){
-            TestmovePawn(move);
+            movePawn(move);
         }else if(move.piece.name.equals("King")){
             moveKing(move);
         }
@@ -200,9 +195,7 @@ public class Board extends JPanel{
         move.piece.xPos = move.nextCol * tile_size;
         move.piece.yPos = move.nextRow * tile_size;
         //move.piece.isFirstMove = false;
-        if(move.capture!=null && move.capture.col != move.nextCol && move.capture.row != move.nextRow){
-            Testcapture(move.capture);
-        }
+        Testcapture(move.capture);
         blackTurn = !blackTurn;
         //updateGameState();
         if(move.capture != null){
@@ -211,50 +204,35 @@ public class Board extends JPanel{
     }
 
     public void undoMove(Move move) {
-        if(move.capture != null && move.piece.promo != null){
-            pieceArrayList.add(move.capture);
-        }
-        if (move.piece.promo != null) {
-//            Piece piece = getPiece(move.nextCol, move.nextRow);
-//            if (piece != null && !piece.name.equals("Pawn")) {
-//                System.out.println(piece.name + " debug");
-//                Testcapture(piece);
-//                pieceArrayList.add(new Pawn(this, move.prevCol, move.prevRow, move.piece.isBlack));
-//                move.piece.promo = null;
-//            }
-            undoPromo(move.piece.promo);
-        }else {
 
-
-            makeTestMove(new Move(this, move.piece, move.prevCol, move.prevRow));
-
-            if (Math.abs(move.piece.col - move.nextCol) == 2 && move.piece.name.equals("King")) {
-                Piece king_rook;
-                Piece queen_rook;
-                if (Math.abs(move.piece.col - move.nextCol) == 2) {
-                    king_rook = getPiece(5, move.piece.row);
-                    if (king_rook != null && king_rook.name.equals("Rook")) {
-                        king_rook.col = 7;
-                        king_rook.xPos = king_rook.col * tile_size;
-                    }
-                    queen_rook = getPiece(3, move.piece.row);
-                    if (queen_rook != null && queen_rook.name.equals("Rook")) {
-                        queen_rook.col = 0;
-                        queen_rook.xPos = queen_rook.col * tile_size;
-                    }
-                } else {
-                    king_rook = getPiece(5, move.piece.row);
-                    if (king_rook != null && king_rook.name.equals("Rook")) {
-                        king_rook.col = 7;
-                        king_rook.xPos = king_rook.col * tile_size;
-                    }
-                    queen_rook = getPiece(3, move.piece.row);
-                    if (queen_rook != null && queen_rook.name.equals("Rook")) {
-                        queen_rook.col = 0;
-                        queen_rook.xPos = queen_rook.col * tile_size;
-                    }
+        makeTestMove(new Move(this,move.piece, move.prevCol, move.prevRow));
+        if(Math.abs(move.piece.col - move.nextCol) == 2 && move.piece.name.equals("King")){
+            Piece king_rook;
+            Piece queen_rook;
+            if(Math.abs(move.piece.col - move.nextCol) == 2) {
+                king_rook = getPiece(5, move.piece.row);
+                if (king_rook != null && king_rook.name.equals("Rook")) {
+                    king_rook.col = 7;
+                    king_rook.xPos = king_rook.col * tile_size;
+                }
+                queen_rook = getPiece(3, move.piece.row);
+                if (queen_rook != null && queen_rook.name.equals("Rook")) {
+                    queen_rook.col = 0;
+                    queen_rook.xPos = queen_rook.col * tile_size;
+                }
+            }else{
+                king_rook = getPiece(5, move.piece.row);
+                if (king_rook != null && king_rook.name.equals("Rook")) {
+                    king_rook.col = 7;
+                    king_rook.xPos = king_rook.col * tile_size;
+                }
+                queen_rook = getPiece(3, move.piece.row);
+                if (queen_rook != null && queen_rook.name.equals("Rook")) {
+                    queen_rook.col = 0;
+                    queen_rook.xPos = queen_rook.col * tile_size;
                 }
             }
+        }
 //        if (!moveHistoryBlack.isEmpty() && isBlack) {
 //            Move lastMove = moveHistoryBlack.pop();
 //            makeTestMove(new Move(this, lastMove.piece, lastMove.prevCol, lastMove.prevRow));
@@ -263,12 +241,6 @@ public class Board extends JPanel{
 //            Move lastMove = moveHistoryWhite.pop();
 //            makeTestMove(new Move(this, lastMove.piece, lastMove.prevCol, lastMove.prevRow));
 //        }
-        }
-    }
-
-    private void undoPromo(Move move) {
-        Testcapture(getPiece(move.nextCol, move.nextRow));
-        pieceArrayList.add(new Pawn(this,move.prevCol,move.prevRow,move.piece.isBlack));
     }
 
     private String updateGameState() {
@@ -312,77 +284,9 @@ public class Board extends JPanel{
         }
     }
 
-    private void TestmovePawn(Move move) {
-        //en pessant
-        int teamIndex = move.piece.isBlack ? -1 : 1;
-        if(getTile_num(move.nextCol, move.nextRow)==enPessantTile){
-            move.capture = getPiece(move.nextCol,move.nextRow+teamIndex);
-        }
-        if(Math.abs((move.piece.row - move.nextRow))==2){
-            enPessantTile = getTile_num(move.nextCol, move.nextRow + teamIndex);
-        }else{
-            enPessantTile = -1;
-        }
-
-        //promotions
-        teamIndex = move.piece.isBlack ? 7 : 0;
-        if(move.nextRow == teamIndex){
-            TestpromotePawn(move);
-        }
-    }
-
-
     private void promotePawn(Move move) {
-//        pieceArrayList.add(new Queen(this, move.nextCol, move.nextRow, move.piece.isBlack));
-//        capture(move.piece);
-        // Possible promotion pieces excluding Pawn and King
-        String[] promotionOptions = {"Queen", "Rook", "Bishop", "Knight"};
-
-        // Show a dropdown using JOptionPane and get the user's choice
-        String selectedPiece = (String) JOptionPane.showInputDialog(
-                null,
-                "Choose a piece to promote to:",
-                "Pawn Promotion",
-                JOptionPane.PLAIN_MESSAGE,
-                null,
-                promotionOptions,
-                promotionOptions[0] // Default selection is Queen
-        );
-
-        if (selectedPiece != null) {
-            Piece newPiece = null;
-            switch (selectedPiece) {
-                case "Queen":
-                    newPiece = new Queen(this, move.nextCol, move.nextRow, move.piece.isBlack);
-                    break;
-                case "Rook":
-                    newPiece = new Rook(this, move.nextCol, move.nextRow, move.piece.isBlack);
-                    break;
-                case "Bishop":
-                    newPiece = new Bishop(this, move.nextCol, move.nextRow, move.piece.isBlack);
-                    break;
-                case "Knight":
-                    newPiece = new Knight(this, move.nextCol, move.nextRow, move.piece.isBlack);
-                    break;
-            }
-
-            // Replace the pawn with the selected piece
-            if (newPiece != null) {
-                pieceArrayList.add(newPiece);
-                capture(move.piece); // Remove the pawn from the board
-            }
-        }else{
-            pieceArrayList.add(new Queen(this, move.nextCol, move.nextRow, move.piece.isBlack));
-            capture(move.piece);
-        }
-    }
-    private void TestpromotePawn(Move move) {
-        Piece piece = getPiece(move.prevCol,move.prevRow);//this throws a null piece error
-        if(piece != null){
-            piece.promo = move;
-            pieceArrayList.add(new Queen(this, move.nextCol, move.nextRow, move.piece.isBlack));
-            Testcapture(move.piece);
-        }
+        pieceArrayList.add(new Queen(this, move.nextCol, move.nextRow, move.piece.isBlack));
+        capture(move.piece);
     }
 
     Piece findKing(boolean isBlack){

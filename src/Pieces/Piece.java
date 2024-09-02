@@ -1,7 +1,6 @@
 package Pieces;
 
 import main.Board;
-import main.Move;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -16,7 +15,7 @@ public class Piece implements Cloneable{
     public boolean isBlack;
     public String name;
     public int value;
-    public Move promo;
+
     public int relativeValue;
     public boolean isFirstMove = true;
     Image sprite;
