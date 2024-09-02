@@ -52,9 +52,6 @@ public class ChessBot {
                 for(Move move : validMoves){
                     board.makeTestMove(move);
                     int eval = Minimax(board,depth - 1, false);
-                    if(move.capture != null){
-                        board.pieceArrayList.add(move.capture);
-                    }
                     board.undoMove(move);
                     if(bestEval>eval && board.blackTurn){
                         bestMove = move;
@@ -71,9 +68,6 @@ public class ChessBot {
                 for(Move move : validMoves){
                     board.makeTestMove(move);
                     int eval = Minimax(board,depth - 1, true);
-                    if(move.capture != null){
-                        board.pieceArrayList.add(move.capture);
-                    }
                     board.undoMove(move);
                     if(bestEval<eval && !board.blackTurn){
                         bestMove = move;
