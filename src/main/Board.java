@@ -14,6 +14,8 @@ public class Board extends JPanel{
     private Stack<Move> moveHistoryBlack = new Stack<>();
     private Stack<Move> moveHistoryWhite = new Stack<>();
     public String fenString = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+    //8/P7/8/8/8/4K3/8/4k3 w - - 0 1
+    //rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
     public int tile_size = 85;
     int cols = 8;
     int rows = 8;
@@ -21,6 +23,8 @@ public class Board extends JPanel{
     public int eval_num = 0;
 
     ArrayList<Piece> pieceArrayList = new ArrayList<>();
+
+    public Move promotedPieceMove;
 
     public Piece selectedPiece;
 
@@ -186,7 +190,7 @@ public class Board extends JPanel{
     }
     public void makeTestMove(Move move){
         if(move.piece.name.equals("Pawn")){
-            movePawn(move);
+            TestmovePawn(move);
         }else if(move.piece.name.equals("King")){
             moveKing(move);
         }
@@ -204,7 +208,11 @@ public class Board extends JPanel{
     }
 
     public void undoMove(Move move) {
-
+        if(promotedPieceMove != null){
+            Piece piece = getPiece(move.nextCol, move.nextRow);
+            pieceArrayList.remove(piece);
+            pieceArrayList.add(move.piece);
+        }
         makeTestMove(new Move(this,move.piece, move.prevCol, move.prevRow));
         if(Math.abs(move.piece.col - move.nextCol) == 2 && move.piece.name.equals("King")){
             Piece king_rook;
@@ -220,6 +228,7 @@ public class Board extends JPanel{
                     queen_rook.col = 0;
                     queen_rook.xPos = queen_rook.col * tile_size;
                 }
+                move.piece.isFirstMove = true;
             }else{
                 king_rook = getPiece(5, move.piece.row);
                 if (king_rook != null && king_rook.name.equals("Rook")) {
@@ -231,6 +240,7 @@ public class Board extends JPanel{
                     queen_rook.col = 0;
                     queen_rook.xPos = queen_rook.col * tile_size;
                 }
+                move.piece.isFirstMove = true;
             }
         }
 //        if (!moveHistoryBlack.isEmpty() && isBlack) {
@@ -283,10 +293,33 @@ public class Board extends JPanel{
             promotePawn(move);
         }
     }
+    private void TestmovePawn(Move move){
+        //en pessant
+        int teamIndex = move.piece.isBlack ? -1 : 1;
+        if(getTile_num(move.nextCol, move.nextRow)==enPessantTile){
+            move.capture = getPiece(move.nextCol,move.nextRow+teamIndex);
+        }
+        if(Math.abs((move.piece.row - move.nextRow))==2){
+            enPessantTile = getTile_num(move.nextCol, move.nextRow + teamIndex);
+        }else{
+            enPessantTile = -1;
+        }
+
+        //promotions
+        teamIndex = move.piece.isBlack ? 7 : 0;
+        if(move.nextRow == teamIndex){
+            TestpromotePawn(move);
+        }
+    }
 
     private void promotePawn(Move move) {
         pieceArrayList.add(new Queen(this, move.nextCol, move.nextRow, move.piece.isBlack));
         capture(move.piece);
+    }
+    private void TestpromotePawn(Move move) {
+        pieceArrayList.add(new Queen(this, move.nextCol, move.nextRow, move.piece.isBlack));
+        capture(move.piece);
+        promotedPieceMove = move;
     }
 
     Piece findKing(boolean isBlack){
